@@ -41,10 +41,10 @@ Add this to `~/Library/Application Support/Claude/claude_desktop_config.json`:
     }
   }
 }
+```
 ⚡ Cursor
 Add this to ~/.cursor/mcp.json or under Cursor Settings ➔ Features ➔ MCP:
-
-JSON
+```json
 {
   "mcpServers": {
     "appstore-connect": {
@@ -58,9 +58,10 @@ JSON
     }
   }
 }
+```
 🏄 Windsurf
 Add this to ~/.codeium/windsurf/mcp_config.json:
-
+```json
 JSON
 {
   "mcpServers": {
@@ -75,6 +76,7 @@ JSON
     }
   }
 }
+```
 🛠️ Features
 📱 App Management: View apps, query version statuses, edit localizations & release notes.
 
@@ -98,17 +100,20 @@ Once configured, try asking your AI assistant:
 "Give me a summary of app downloads for the past 14 days."
 
 🔑 Environment Variables
-Variable	Required	Description
-APPLE_KEY_ID	Yes	Your App Store Connect API Key ID
-APPLE_ISSUER_ID	Yes	Your App Store Connect Issuer ID
-APPLE_PRIVATE_KEY	Yes	Raw PEM content or Base64-encoded string of your .p8 key
-APPLE_BUNDLE_ID	Optional	Restrict tool scope to a specific app bundle ID
-APPLE_APP_STORE_ID	Optional	Restrict tool scope to a specific App Store ID
-OAUTH_ENABLED	Optional	Set true if deploying as a remote server via OAuth 2.0
+| Variable | Required | Description |
+| :--- | :--- | :--- |
+| `APPLE_KEY_ID` | **Yes** | Your App Store Connect API Key ID |
+| `APPLE_ISSUER_ID` | **Yes** | Your App Store Connect Issuer ID |
+| `APPLE_PRIVATE_KEY` | **Yes** | Raw PEM content or Base64-encoded string of your `.p8` key |
+| `APPLE_BUNDLE_ID` | Optional | Restrict tool scope to a specific app bundle ID |
+| `APPLE_APP_STORE_ID` | Optional | Restrict tool scope to a specific App Store ID |
+| `OAUTH_ENABLED` | Optional | Set `true` if deploying as a remote server via OAuth 2.0 |
+
 💻 Local Development
 If you want to contribute or modify the source code locally:
 
 Bash
+```bash
 # 1. Clone repo
 git clone [https://github.com/ryaker/appstore-connect-mcp.git](https://github.com/ryaker/appstore-connect-mcp.git)
 cd appstore-connect-mcp
@@ -119,6 +124,7 @@ npm run build
 
 # 3. Test locally
 npm start
+```
 🤝 Contributing & Support
 Feel free to open an Issue for bug reports, missing App Store Connect endpoints, or feature requests!
 
