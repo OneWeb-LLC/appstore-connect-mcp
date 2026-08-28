@@ -1,158 +1,125 @@
-# Apple Store Connect MCP Server
+# 🍎 App Store Connect MCP Server
 
-A Model Context Protocol (MCP) server that provides tools for interacting with Apple Store Connect API, enabling management of iOS/macOS apps, TestFlight, app metadata, and more through Claude Desktop or other MCP clients.
+[![npm version](https://img.shields.io/npm/v/@ryaker/appstore-connect-mcp.svg)](https://www.npmjs.com/package/@ryaker/appstore-connect-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 
-## Features
+A Model Context Protocol (MCP) server that connects AI assistants like **Claude Desktop**, **Cursor**, **Windsurf**, and **VS Code** to the **Apple App Store Connect API**. 
 
-### App Management
-- **List Apps**: View all apps in your App Store Connect account
-- **App Information**: Get detailed app info including status and metadata
-- **App Store Versions**: Create and manage app store versions
-- **Localization**: Update app descriptions and metadata for different markets
+Automate TestFlight builds, customer review analysis, app metadata updates, and sales reports directly inside your AI coding workflow.
 
-### Analytics & Sales
-- **Sales Data**: Retrieve sales and revenue information
-- **Analytics**: Access app analytics including installs and user engagement
-- **Customer Reviews**: Read and analyze customer feedback
-- **Pricing Information**: View current app pricing across different regions
+---
 
-### TestFlight Integration
-- **Build Management**: View TestFlight builds and their status
-- **Beta Groups**: Manage TestFlight beta testing groups
-- **Tester Management**: Add and manage beta testers
+## 💡 Quickstart (npx)
 
-### Additional Features
-- **In-App Purchases**: View and manage in-app purchase products
-- **App Availability**: Check app availability across different regions
-- **Category & Rating**: Access app category and age rating information
+No need to clone or build manually! You can run this MCP server directly using `npx`.
 
-## Setup
+### 1. Generate App Store Connect API Key
+1. Log into [App Store Connect](https://appstoreconnect.apple.com/).
+2. Navigate to **Users and Access** ➔ **Integrations** ➔ **App Store Connect API**.
+3. Click **Generate API Key** (Admin or App Manager role recommended).
+4. Download the `.p8` key file and note your **Key ID** and **Issuer ID**.
 
-### Prerequisites
-- Node.js 18+
-- Apple Developer Account with App Store Connect access
-- App Store Connect API key
+---
 
-### Apple Store Connect API Key Setup
+### 2. Add to Your MCP Client
 
-1. **Generate API Key**:
-   - Go to [App Store Connect](https://appstoreconnect.apple.com)
-   - Navigate to Users and Access → Integrations → App Store Connect API
-   - Create a new API key with appropriate permissions
-
-2. **Environment Variables**:
-   ```bash
-   APPLE_KEY_ID=your_key_id
-   APPLE_ISSUER_ID=your_issuer_id  
-   APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
-   your_private_key_content
-   -----END PRIVATE KEY-----"
-   APPLE_BUNDLE_ID=com.yourcompany.yourapp
-   ```
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/ryaker/appstore-connect-mcp.git
-cd appstore-connect-mcp
-
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Start the server
-npm start
-```
-
-### Claude Desktop Configuration
-
-Add to your Claude Desktop `claude_desktop_config.json`:
+#### 🟢 Claude Desktop
+Add this to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "appstore-connect": {
-      "command": "node",
-      "args": ["/path/to/appstore-connect-mcp/dist/src/index.js"],
+      "command": "npx",
+      "args": ["-y", "@ryaker/appstore-connect-mcp"],
       "env": {
-        "APPLE_KEY_ID": "your_key_id",
-        "APPLE_ISSUER_ID": "your_issuer_id",
-        "APPLE_PRIVATE_KEY": "your_private_key",
-        "APPLE_BUNDLE_ID": "com.yourcompany.yourapp"
+        "APPLE_KEY_ID": "YOUR_KEY_ID",
+        "APPLE_ISSUER_ID": "YOUR_ISSUER_ID",
+        "APPLE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
       }
     }
   }
 }
-```
+⚡ Cursor
+Add this to ~/.cursor/mcp.json or under Cursor Settings ➔ Features ➔ MCP:
 
-## Usage
-
-Once configured, you can ask Claude to:
-
-- "Show me my app's latest sales data"
-- "List all TestFlight builds for my app"
-- "What are the recent customer reviews?"
-- "Create a new app store version"
-- "Add a beta tester to my TestFlight group"
-
-## Remote Deployment with OAuth
-
-### Auth0 Setup (for Remote Access)
-
-1. **Create Auth0 API**:
-   - Log into [Auth0 Dashboard](https://manage.auth0.com)
-   - Create new API (not Application)
-   - Note the Identifier (becomes your audience)
-
-2. **Configure OAuth Settings**:
-```env
-OAUTH_ENABLED=true
-AUTH0_DOMAIN=https://your-tenant.auth0.com
-AUTH0_AUDIENCE=https://your-api-identifier
-```
-
-3. **Deploy to Vercel**:
-```bash
-vercel --prod
-```
-
-4. **Configure Claude Desktop for Remote Access**:
-```json
+JSON
 {
   "mcpServers": {
     "appstore-connect": {
-      "url": "https://your-deployment.vercel.app/mcp"
+      "command": "npx",
+      "args": ["-y", "@ryaker/appstore-connect-mcp"],
+      "env": {
+        "APPLE_KEY_ID": "YOUR_KEY_ID",
+        "APPLE_ISSUER_ID": "YOUR_ISSUER_ID",
+        "APPLE_PRIVATE_KEY": "YOUR_PRIVATE_KEY_BASE64_OR_RAW"
+      }
     }
   }
 }
-```
+🏄 Windsurf
+Add this to ~/.codeium/windsurf/mcp_config.json:
 
-Claude will automatically discover OAuth configuration and handle authentication.
+JSON
+{
+  "mcpServers": {
+    "appstore-connect": {
+      "command": "npx",
+      "args": ["-y", "@ryaker/appstore-connect-mcp"],
+      "env": {
+        "APPLE_KEY_ID": "YOUR_KEY_ID",
+        "APPLE_ISSUER_ID": "YOUR_ISSUER_ID",
+        "APPLE_PRIVATE_KEY": "YOUR_PRIVATE_KEY"
+      }
+    }
+  }
+}
+🛠️ Features
+📱 App Management: View apps, query version statuses, edit localizations & release notes.
 
-## Authentication
+✈️ TestFlight Integration: List builds, manage beta testing groups, and add/remove beta testers.
 
-This server supports two authentication modes:
-- **Local**: Direct API key authentication with Apple Store Connect
-- **Remote**: OAuth 2.0 via Auth0 for secure remote access
+💬 Customer Reviews: Read, summarize, and draft responses to user reviews.
 
-## Requirements
+📊 Analytics & Sales: Retrieve unit downloads, revenue metrics, and regional performance.
 
-- Valid Apple Developer Program membership
-- App Store Connect access
-- API key with appropriate permissions (typically App Manager or Admin)
+🔐 Dual Auth Support: Supports direct local API Key authentication or remote OAuth 2.0 (via Auth0).
 
-## License
+💬 Example Prompts
+Once configured, try asking your AI assistant:
 
-MIT License - see LICENSE file for details
+"Show me the latest TestFlight builds for my app and their processing status."
 
-## Contributing
+"What are the most recent 1-star reviews on the App Store and summarize user complaints?"
 
-Contributions welcome! Please read our contributing guidelines and submit pull requests for any improvements.
+"Update the release notes for version 1.2.0 in English (US)."
 
-## Support
+"Give me a summary of app downloads for the past 14 days."
 
-- Create an issue for bugs or feature requests
-- Check Apple's App Store Connect API documentation for API-specific questions
+🔑 Environment Variables
+Variable	Required	Description
+APPLE_KEY_ID	Yes	Your App Store Connect API Key ID
+APPLE_ISSUER_ID	Yes	Your App Store Connect Issuer ID
+APPLE_PRIVATE_KEY	Yes	Raw PEM content or Base64-encoded string of your .p8 key
+APPLE_BUNDLE_ID	Optional	Restrict tool scope to a specific app bundle ID
+APPLE_APP_STORE_ID	Optional	Restrict tool scope to a specific App Store ID
+OAUTH_ENABLED	Optional	Set true if deploying as a remote server via OAuth 2.0
+💻 Local Development
+If you want to contribute or modify the source code locally:
+
+Bash
+# 1. Clone repo
+git clone [https://github.com/ryaker/appstore-connect-mcp.git](https://github.com/ryaker/appstore-connect-mcp.git)
+cd appstore-connect-mcp
+
+# 2. Install & build
+npm install
+npm run build
+
+# 3. Test locally
+npm start
+🤝 Contributing & Support
+Feel free to open an Issue for bug reports, missing App Store Connect endpoints, or feature requests!
+
+License: MIT
