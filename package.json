@@ -1,8 +1,11 @@
 {
   "name": "@ryaker/appstore-connect-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Apple Store Connect MCP Server with OAuth authentication support for Claude Desktop/iOS",
   "main": "dist/index.js",
+  "bin": {
+    "appstore-connect-mcp": "dist/index.js"
+  },
   "type": "module",
   "mcpName": "io.github.ryaker/appstore-connect-mcp",
   "author": "Ryan Aker",
@@ -22,7 +25,7 @@
     "auth0"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/index.js",
     "vercel-build": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js"

@@ -17,6 +17,7 @@ export interface AppInfo {
   id: string;
   name: string;
   bundleId: string;
+  sku: string;
   appStoreId?: string;
   status: string;
   version?: string;
@@ -78,8 +79,8 @@ export class AppStoreConnectClient {
         aud: 'appstoreconnect-v1'
       };
 
-      console.log('Generating JWT with issuer:', this.config.issuerId);
-      console.log('Key ID:', this.config.keyId);
+      console.error('Generating JWT with issuer:', this.config.issuerId);
+      console.error('Key ID:', this.config.keyId);
       
       const token = jwt.sign(payload, this.config.privateKey, {
         algorithm: 'ES256',
@@ -90,7 +91,7 @@ export class AppStoreConnectClient {
         }
       });
       
-      console.log('JWT generated successfully');
+      console.error('JWT generated successfully');
       return token;
     } catch (error: any) {
       console.error('Failed to generate JWT:', error.message);
@@ -108,7 +109,7 @@ export class AppStoreConnectClient {
     const token = this.generateToken();
     const url = `${this.baseUrl}${endpoint}`;
     
-    console.log(`Making ${options?.method || 'GET'} request to: ${url}`);
+    console.error(`Making ${options?.method || 'GET'} request to: ${url}`);
     
     const response = await fetch(url, {
       method: options?.method || 'GET',
@@ -147,7 +148,8 @@ export class AppStoreConnectClient {
         id: app.id,
         name: app.attributes.name,
         bundleId: app.attributes.bundleId,
-        appStoreId: app.attributes.sku,
+        sku: app.attributes.sku,
+        appStoreId: app.id,
         status: app.attributes.appStoreState,
         platform: app.attributes.primaryLocale,
       })) || [];
@@ -171,7 +173,8 @@ export class AppStoreConnectClient {
         id: app.id,
         name: app.attributes.name,
         bundleId: app.attributes.bundleId,
-        appStoreId: app.attributes.sku,
+        sku: app.attributes.sku,
+        appStoreId: app.id,
         status: app.attributes.appStoreState,
         version: app.attributes.contentRightsDeclaration,
         platform: app.attributes.primaryLocale,

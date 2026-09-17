@@ -1,64 +1,34 @@
+#!/usr/bin/env node
 /**
- * Express-based MCP Server using Official MCP TypeScript SDK
- * Implements Apple Store Connect API tools with proper OAuth authentication
+ * App Store Connect MCP Server using the official MCP TypeScript SDK.
+ * Defaults to stdio transport for Cursor/Claude Desktop; use MCP_TRANSPORT=http for HTTP mode.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { HttpTransport } from './transport/HttpTransport.js';
 import { AppStoreConnectClient, type AppStoreConfig } from './appstore-client.js';
+import {
+  detectTransportType,
+  getNormalizedConfig,
+  validateRequiredConfig,
+} from './config.js';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'node:url';
 
-// Load environment variables
 dotenv.config();
 
-// Function to get Apple Store config at runtime
 function getAppStoreConfig(): AppStoreConfig {
-  // Apple Store Connect configuration - handle base64 encoded private key
-  let privateKey = process.env.APPLE_PRIVATE_KEY || '';
-  if (!privateKey) {
-    console.error('❌ APPLE_PRIVATE_KEY environment variable is not set!');
-    privateKey = ''; // Prevent crash, will fail when trying to use
-  } else {
-    privateKey = privateKey.trim();
-    console.log('🔑 Private key starts with:', privateKey.substring(0, 30));
-    
-    // Check if private key is base64 encoded (Vercel stores it this way)
-    if (!privateKey.includes('BEGIN PRIVATE KEY')) {
-      try {
-        const decoded = Buffer.from(privateKey, 'base64').toString('utf-8').trim();
-        console.log('📝 Decoded key starts with:', decoded.substring(0, 30));
-        if (decoded.includes('BEGIN PRIVATE KEY')) {
-          privateKey = decoded;
-          console.log('✅ Successfully decoded base64 private key');
-        }
-      } catch (e) {
-        console.error('❌ Failed to decode base64:', e);
-        // Not base64, try replacing escaped newlines
-        privateKey = privateKey.replace(/\\n/g, '\n');
-      }
-    } else {
-      // Fix any escaped newlines
-      privateKey = privateKey.replace(/\\n/g, '\n');
-      console.log('✅ Using private key as-is (not base64)');
-    }
-  }
+  const config = getNormalizedConfig();
 
-  const config: AppStoreConfig = {
-    keyId: (process.env.APPLE_KEY_ID || '').trim(),
-    issuerId: (process.env.APPLE_ISSUER_ID || '').trim(),
-    privateKey: privateKey.trim(),
-    bundleId: (process.env.APPLE_BUNDLE_ID || '').trim(),
-    appStoreId: process.env.APPLE_APP_STORE_ID?.trim(),
+  return {
+    keyId: config.keyId,
+    issuerId: config.issuerId,
+    privateKey: config.privateKey,
+    bundleId: config.bundleId || '',
+    appStoreId: config.appStoreId,
   };
-
-  console.log('📱 Apple Store Connect Config:');
-  console.log('  Key ID:', config.keyId);
-  console.log('  Issuer ID:', config.issuerId);
-  console.log('  Bundle ID:', config.bundleId);
-  console.log('  Private Key:', privateKey ? 'Loaded' : 'Missing');
-  
-  return config;
 }
 
 /**
@@ -370,16 +340,37 @@ function createMcpServer(): Server {
       switch (name) {
         case 'list_apps': {
           const apps = await appStoreClient.listApps();
+          const appsWithVersions = await Promise.all(
+            apps.map(async (app) => {
+              try {
+                const versions = await appStoreClient.listAppStoreVersions(app.id);
+                const currentVersion =
+                  versions.find((version) =>
+                    ['READY_FOR_SALE', 'PENDING_APPLE_RELEASE', 'PROCESSING_FOR_APP_STORE'].includes(
+                      version.appStoreState
+                    )
+                  ) || versions[0];
+
+                return {
+                  ...app,
+                  currentVersion: currentVersion?.versionString,
+                  currentVersionState: currentVersion?.appStoreState,
+                };
+              } catch {
+                return {
+                  ...app,
+                  currentVersion: undefined,
+                  currentVersionState: undefined,
+                };
+              }
+            })
+          );
+
           return {
             content: [
               {
                 type: 'text',
-                text: `Found ${apps.length} apps:\n\n${apps
-                  .map(
-                    (app) =>
-                      `• ${app.name} (${app.bundleId})\n  Status: ${app.status}\n  App Store ID: ${app.appStoreId || 'N/A'}\n  Platform: ${app.platform || 'N/A'}`
-                  )
-                  .join('\n\n')}`,
+                text: JSON.stringify(appsWithVersions, null, 2),
               },
             ],
           };
@@ -845,23 +836,7 @@ ${details.secondarySubcategoryTwo ? `• Secondary Subcategory 2: ${details.seco
   return server;
 }
 
-/**
- * Start the MCP server with dual transport support (STDIO + HTTP)
- */
-async function main() {
-  console.log('🚀 Starting Apple Store Connect MCP Server...');
-  
-  // Validate required environment variables
-  const requiredEnvVars = ['APPLE_KEY_ID', 'APPLE_ISSUER_ID', 'APPLE_PRIVATE_KEY', 'APPLE_BUNDLE_ID'];
-  const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
-  
-  if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:', missing);
-    process.exit(1);
-  }
-
-  // Create HTTP transport with OAuth (like KMSmcp)
-  console.log('🌐 Starting HTTP transport...');
+async function startHttpServer(): Promise<void> {
   const httpTransport = new HttpTransport({
     port: parseInt(process.env.PORT || '3001', 10),
     host: process.env.HOST || '0.0.0.0',
@@ -877,41 +852,52 @@ async function main() {
     } : undefined,
   });
 
-  // Set MCP server factory for HTTP transport
   httpTransport.setMcpServerFactory(() => createMcpServer());
+  await httpTransport.start();
 
-  try {
-    await httpTransport.start();
-    console.log('✅ Apple Store Connect MCP Server is running!');
-    console.log(`📱 Bundle ID: ${process.env.APPLE_BUNDLE_ID || 'Not configured'}`);
-    console.log(`🔑 OAuth Authentication: ${process.env.OAUTH_ENABLED === 'true' ? 'Enabled' : 'Disabled'}`);
-    if (process.env.OAUTH_ENABLED === 'true') {
-      console.log(`🔐 OAuth Issuer: ${process.env.STYTCH_PROJECT_DOMAIN || 'https://test.stytch.com'}`);
-      console.log(`👥 OAuth Audience: ${process.env.STYTCH_PROJECT_ID}`);
-    }
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
+  const shutdown = async () => {
+    await httpTransport.stop();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+async function startStdioServer(): Promise<void> {
+  const server = createMcpServer();
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+/**
+ * Start the MCP server with stdio (default) or HTTP transport.
+ */
+async function main() {
+  const config = getNormalizedConfig();
+  const missing = validateRequiredConfig(config);
+
+  if (missing.length > 0) {
+    console.error('Missing required environment variables:', missing.join(', '));
     process.exit(1);
   }
 
-  // Handle graceful shutdown
-  process.on('SIGINT', async () => {
-    console.log('\n🔌 Shutting down gracefully...');
-    await httpTransport.stop();
-    process.exit(0);
-  });
+  const transportType = detectTransportType();
 
-  process.on('SIGTERM', async () => {
-    console.log('\n🔌 Shutting down gracefully...');
-    await httpTransport.stop();
-    process.exit(0);
-  });
+  if (transportType === 'http') {
+    console.error('Starting Apple Store Connect MCP Server (HTTP transport)...');
+    await startHttpServer();
+    return;
+  }
+
+  await startStdioServer();
 }
 
-// Start the server if this file is run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
   main().catch((error) => {
-    console.error('💥 Server crashed:', error);
+    console.error('Server crashed:', error);
     process.exit(1);
   });
 }
