@@ -7,13 +7,13 @@
     "url": "https://github.com/ryaker/appstore-connect-mcp",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packages": [
     {
       "registry_type": "npm",
       "registry_base_url": "https://registry.npmjs.org",
       "identifier": "@ryaker/appstore-connect-mcp",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "transport": {
         "type": "stdio"
       },
@@ -38,6 +38,34 @@
           "format": "string",
           "is_secret": true,
           "name": "APPLE_PRIVATE_KEY"
+        },
+        {
+          "description": "Alias for APPLE_KEY_ID",
+          "is_required": false,
+          "format": "string",
+          "is_secret": true,
+          "name": "APP_STORE_CONNECT_KEY_ID"
+        },
+        {
+          "description": "Alias for APPLE_ISSUER_ID",
+          "is_required": false,
+          "format": "string",
+          "is_secret": true,
+          "name": "APP_STORE_CONNECT_ISSUER_ID"
+        },
+        {
+          "description": "Alias for APPLE_PRIVATE_KEY",
+          "is_required": false,
+          "format": "string",
+          "is_secret": true,
+          "name": "APP_STORE_CONNECT_P8"
+        },
+        {
+          "description": "Path to the App Store Connect .p8 private key file",
+          "is_required": false,
+          "format": "string",
+          "is_secret": false,
+          "name": "APP_STORE_CONNECT_P8_PATH"
         },
         {
           "description": "Optional: Specific Bundle ID to filter apps",
