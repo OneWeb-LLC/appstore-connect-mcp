@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "appstore-connect": {
+      "command": "bash",
+      "args": ["scripts/run-mcp-server.sh"]
+    }
+  }
+}
