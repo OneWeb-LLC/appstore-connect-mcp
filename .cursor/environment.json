@@ -1,6 +1,7 @@
 {
   "name": "appstore-connect-mcp",
   "install": "npm install && npm run build",
+  "start": "npm install && npm run build",
   "mcpServerAllowlist": [
     {
       "name": "appstore-connect",
