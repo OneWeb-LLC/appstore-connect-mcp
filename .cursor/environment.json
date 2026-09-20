@@ -1,0 +1,10 @@
+{
+  "name": "appstore-connect-mcp",
+  "install": "npm install && npm run build",
+  "mcpServerAllowlist": [
+    {
+      "name": "appstore-connect",
+      "command": "bash"
+    }
+  ]
+}
