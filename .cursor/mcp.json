@@ -2,7 +2,7 @@
   "mcpServers": {
     "appstore-connect": {
       "command": "bash",
-      "args": ["scripts/run-mcp-server.sh"]
+      "args": ["-lc", "cd /workspace && bash scripts/run-mcp-server.sh"]
     }
   }
 }
